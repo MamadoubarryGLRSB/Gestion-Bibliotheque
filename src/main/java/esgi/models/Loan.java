@@ -8,7 +8,6 @@ import java.util.Date;
 @Entity
 @Getter
 @Setter
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "loan")
@@ -17,6 +16,14 @@ public class Loan {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "loan_date", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date loanDate;
+
+    @Column(name = "return_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date returnDate;
+
     @ManyToOne
     @JoinColumn(name = "id_user", nullable = false)
     private User user;
@@ -24,7 +31,4 @@ public class Loan {
     @ManyToOne
     @JoinColumn(name = "id_book", nullable = false)
     private Book book;
-
-    private Date loanDate;
-    private Date returnDate;
 }

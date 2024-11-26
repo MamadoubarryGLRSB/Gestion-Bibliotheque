@@ -1,5 +1,8 @@
 package esgi.models;
 
 public enum Role {
-    MEMBER, LIBRARIAN, ADMINISTRATOR
+    ADMIN,
+    MEMBRE,
+    BIBLIOTHECAIR
+
 }
