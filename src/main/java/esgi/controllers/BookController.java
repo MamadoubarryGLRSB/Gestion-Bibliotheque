@@ -15,7 +15,7 @@ public class BookController {
 
     private final BookService bookService;
 
-    // Injection de BookService via le constructeur (recommandé par Spring)
+    // Injection de BookService via le constructeur
     public BookController(BookService bookService) {
         this.bookService = bookService;
     }
@@ -23,22 +23,34 @@ public class BookController {
     // Récupérer tous les livres
     @GetMapping
     public ResponseEntity<List<Book>> getAllBooks() {
-        List<Book> books = bookService.getAllBooks();
-        return ResponseEntity.ok(books);
+        try {
+            List<Book> books = bookService.getAllBooks();
+            return ResponseEntity.ok(books);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null);
+        }
     }
 
     // Récupérer un livre par son ID
     @GetMapping("/{id}")
     public ResponseEntity<Book> getBookById(@PathVariable Long id) {
-        Optional<Book> book = bookService.getBookById(id);
-        return book.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+        try {
+            Optional<Book> book = bookService.getBookById(id);
+            return book.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
     }
 
     // Ajouter un nouveau livre
     @PostMapping
     public ResponseEntity<Book> createBook(@RequestBody Book book) {
-        Book savedBook = bookService.addBook(book);
-        return ResponseEntity.status(201).body(savedBook);
+        try {
+            Book savedBook = bookService.addBook(book);
+            return ResponseEntity.status(201).body(savedBook);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null);
+        }
     }
 
     // Mettre à jour un livre
@@ -49,17 +61,22 @@ public class BookController {
             return ResponseEntity.ok(updatedBook);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
         }
     }
 
-    // Supprimer un livre
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
         try {
             bookService.deleteBook(id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
+
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+
+            return ResponseEntity.status(500).build();
         }
     }
 
@@ -69,8 +86,11 @@ public class BookController {
             @RequestParam(required = false) String title,
             @RequestParam(required = false) String author,
             @RequestParam(required = false) String genre) {
-
-        List<Book> filteredBooks = bookService.filterBooks(title, author, genre);
-        return ResponseEntity.ok(filteredBooks);
+        try {
+            List<Book> filteredBooks = bookService.filterBooks(title, author, genre);
+            return ResponseEntity.ok(filteredBooks);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null);
+        }
     }
 }
