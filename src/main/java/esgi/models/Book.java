@@ -1,5 +1,7 @@
 package esgi.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,8 +32,11 @@ public class Book {
 
     @ManyToOne
     @JoinColumn(name = "id_library", nullable = false)
+    @JsonBackReference
     private Library library;
 
+
     @OneToMany(mappedBy = "book", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Loan> loans;
 }
