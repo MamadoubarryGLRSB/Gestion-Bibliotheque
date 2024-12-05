@@ -2,8 +2,7 @@ package esgi.models;
 
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.Date;
+import esgi.models.User;
 
 @Entity
 @Getter
@@ -16,19 +15,17 @@ public class Loan {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "loan_date", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date loanDate;
+    @Column(nullable = false)
+    private String borrower;
 
-    @Column(name = "return_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date returnDate;
-
-    @ManyToOne
-    @JoinColumn(name = "id_user", nullable = false)
-    private User user;
+    @Column(nullable = false)
+    private String date;
 
     @ManyToOne
     @JoinColumn(name = "id_book", nullable = false)
     private Book book;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }

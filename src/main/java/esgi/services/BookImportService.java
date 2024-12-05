@@ -1,68 +1,89 @@
 package esgi.services;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.opencsv.CSVParserBuilder;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 import esgi.models.Book;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+
+import java.io.File;
+import java.io.FileReader;
+
+import org.springframework.core.io.ClassPathResource;
 
 @Service
 public class BookImportService {
 
     private final BookService bookService;
-    private final ObjectMapper objectMapper;
+    private final LibraryService libraryService;
 
-    public BookImportService(BookService bookService) {
+    public BookImportService(BookService bookService, LibraryService libraryService) {
         this.bookService = bookService;
-        this.objectMapper = new ObjectMapper();
+        this.libraryService = libraryService;
     }
 
-    public void importBooks(String isbn) {
-        String apiUrl = "https://openlibrary.org/api/books?bibkeys=ISBN:" + isbn + "&format=json&jscmd=data";
-        RestTemplate restTemplate = new RestTemplate();
 
+    public void importBooksFromKaggle(String filePath) {
         try {
-            // Appel API
-            String response = restTemplate.getForObject(apiUrl, String.class);
+            // Charger le fichier CSV depuis le chemin spécifié
+            ClassPathResource resource = new ClassPathResource("books_data/books.csv");
+            File file = resource.getFile();
 
-            // Traitement des données
-            String title = extractTitleFromJson(response, isbn);
-            String author = extractAuthorFromJson(response, isbn);
-            String image = extractImageFromJson(response, isbn);
+            // Configurer le lecteur CSV avec le séparateur ';'
+            try (CSVReader reader = new CSVReaderBuilder(new FileReader(file))
+                    .withCSVParser(new CSVParserBuilder().withSeparator(';').build()) // Définit le séparateur
+                    .build()) {
 
-            // Insérer dans la base de données
-            Book book = new Book();
-            book.setTitle(title);
-            book.setAuthor(author);
-            book.setImage(image);
-            book.setAvailability(true);
-            bookService.createBook(book);
+                String[] nextLine;
 
+                // Ignorer l'en-tête
+                reader.readNext();
+
+                // Lire les lignes
+                while ((nextLine = reader.readNext()) != null) {
+                    if (nextLine.length < 8) { // Vérifie que toutes les colonnes nécessaires sont présentes
+                        System.err.println("Ligne ignorée : données insuffisantes - " + String.join(", ", nextLine));
+                        continue; // Ignore cette ligne
+                    }
+                    String isbn = nextLine[0];
+                    String title = nextLine[1];
+                    String author = nextLine[2];
+                    String year_of_publication = nextLine[3];
+                    String publisher = nextLine[4];
+                    String imageUrlS = nextLine[5];
+                    String imageUrlM = nextLine[6];
+                    String imageUrlL = nextLine[7];
+
+                    // Log pour vérifier les données
+                    System.out.println("ISBN: " + isbn);
+                    System.out.println("Title: " + title);
+                    System.out.println("Author: " + author);
+                    System.out.println("Year_Of_Publication: " + year_of_publication);
+                    System.out.println("Publisher: " + publisher);
+                    System.out.println("Image Small: " + imageUrlS);
+                    System.out.println("Image Medium: " + imageUrlM);
+                    System.out.println("Image Large: " + imageUrlL);
+
+                    // Ici, insérer les données en base
+                    Book book = new Book();
+                    book.setIsbn(isbn);
+                    book.setTitle(title);
+                    book.setAuthor(author);
+                    book.setYearOfPublication(year_of_publication);
+                    book.setPublisher(publisher);
+                    book.setAvailability(true);
+                    book.setImageUrlS(imageUrlS);
+                    book.setImageUrlM(imageUrlM);
+                    book.setImageUrlL(imageUrlL);
+                    book.setLibrary(libraryService.getDefaultLibrary());
+
+                    bookService.createBook(book);
+                }
+            }
         } catch (Exception e) {
-            System.out.println("Erreur lors de l'importation des livres : " + e.getMessage());
+            throw new RuntimeException("Erreur lors de l'importation des livres avec images : " + e.getMessage(), e);
         }
     }
 
-    private String extractTitleFromJson(String json, String isbn) throws Exception {
-        JsonNode rootNode = objectMapper.readTree(json);
-        JsonNode bookNode = rootNode.path("ISBN:" + isbn);
-        return bookNode.path("title").asText(null); // Retourne null si le champ "title" n'existe pas
-    }
-
-    private String extractAuthorFromJson(String json, String isbn) throws Exception {
-        JsonNode rootNode = objectMapper.readTree(json);
-        JsonNode bookNode = rootNode.path("ISBN:" + isbn);
-        JsonNode authorsNode = bookNode.path("authors");
-
-        if (authorsNode.isArray() && authorsNode.size() > 0) {
-            return authorsNode.get(0).path("name").asText(null); // Récupère le nom du premier auteur
-        }
-        return null;
-    }
-
-    private String extractImageFromJson(String json, String isbn) throws Exception {
-        JsonNode rootNode = objectMapper.readTree(json);
-        JsonNode bookNode = rootNode.path("ISBN:" + isbn);
-        return bookNode.path("cover").path("medium").asText(null); // URL de l'image (medium size)
-    }
 }
+

@@ -28,19 +28,26 @@ public class DatabaseConnection {
     }
 
     // Méthode pour obtenir l'instance unique
-    public static DatabaseConnection getInstance() throws SQLException {
+    public static DatabaseConnection getInstance() {
         if (instance == null) {
             synchronized (DatabaseConnection.class) {
                 if (instance == null) {
-                    instance = new DatabaseConnection();
+                    try {
+                        instance = new DatabaseConnection();
+                    } catch (SQLException e) {
+                        throw new RuntimeException("Erreur lors de la création de la connexion à la base de données.", e);
+                    }
                 }
             }
         }
         return instance;
     }
 
-    // Méthode pour obtenir la connexion
-    public Connection getConnection() {
+    public Connection getConnection() throws SQLException {
+        if (connection == null || connection.isClosed()) {
+            connection = DriverManager.getConnection(URL, USER, PASSWORD);
+        }
         return connection;
     }
+
 }
