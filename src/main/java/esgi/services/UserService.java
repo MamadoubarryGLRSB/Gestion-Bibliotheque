@@ -1,5 +1,7 @@
 package esgi.services;
 
+import esgi.Factory.UserFactory;
+import esgi.models.Role;
 import esgi.models.User;
 import esgi.repositories.UserRepository;
 import org.springframework.stereotype.Service;
@@ -12,20 +14,23 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private  final UserFactory userFactory;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, UserFactory userFactory) {
         this.userRepository = userRepository;
+        this.userFactory = userFactory;
     }
 
-    public String creerUser(User user){
+    public String createUser(User user){
 
         User existingUser = this.userRepository.findByEmail(user.getEmail());
         if (existingUser != null) {
             // L'email existe déjà, donc on peut lancer une exception
           return ("Email is already in use.");
         }
+        User users = userFactory.createUser(user.getName(), user.getEmail(), user.getPassword(), user.getRole());
 
-        this.userRepository.save(user);
+        this.userRepository.save(users);
         return "User created successfully";
     }
 
@@ -45,7 +50,6 @@ public class UserService {
 
     public String updateProfile( User user){
 
-        System.out.println("Voila ca : "+ user.getName());
         Optional<User> user_id = this.userRepository.findById(user.getId());
 
         if (user_id.isPresent()){
@@ -90,4 +94,33 @@ public class UserService {
         return "User does not exist";
 
     }
+
+    // Ajouter un bibliothécaire
+    public User addLibrarian(User librarian) {
+        if (librarian.getRole() != Role.LIBRARIAN) {
+            throw new IllegalArgumentException("User role must be LIBRARIAN");
+        }
+        return userRepository.save(librarian);
+    }
+
+    // Obtenir la liste des bibliothécaires
+    public List<User> getAllLibrarians() {
+        return userRepository.findByRole(Role.LIBRARIAN);
+    }
+
+    // Supprimer un bibliothécaire (par ADMIN)
+    public void deleteLibrarian(Integer librarianId) {
+        User librarian = userRepository.findById(librarianId)
+                .orElseThrow(() -> new RuntimeException("Librarian not found"));
+        if (librarian.getRole() != Role.LIBRARIAN) {
+            throw new RuntimeException("User is not a librarian");
+        }
+        userRepository.delete(librarian);
+    }
+
+    public User getUserById(Integer id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User with ID " + id + " not found"));
+    }
+
 }

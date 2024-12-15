@@ -1,7 +1,12 @@
 package esgi.services;
 
+import esgi.Factory.BookFactory;
 import esgi.config.DatabaseConnection;
 import esgi.models.Book;
+import esgi.models.Library;
+import esgi.models.Role;
+import esgi.models.User;
+import esgi.repositories.BookRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -13,136 +18,64 @@ import java.util.Optional;
 
 @Service
 public class BookService {
+    private BookRepository bookRepository;
+    private BookFactory bookFactory;
 
-    private static final Logger logger = LoggerFactory.getLogger(BookService.class);
+    public BookService(BookRepository bookRepository, BookFactory bookFactory) {
+        this.bookRepository = bookRepository;
+        this.bookFactory = bookFactory;
+    }
 
     public List<Book> getAllBooks() {
-        List<Book> books = new ArrayList<>();
-        String query = "SELECT * FROM book";
-
-        try (Connection connection = DatabaseConnection.getInstance().getConnection();
-             PreparedStatement statement = connection.prepareStatement(query);
-             ResultSet resultSet = statement.executeQuery()) {
-
-            while (resultSet.next()) {
-                Book book = new Book();
-                book.setId(resultSet.getLong("id"));
-                book.setTitle(resultSet.getString("title"));
-                book.setAuthor(resultSet.getString("author"));
-                book.setGenre(resultSet.getString("genre"));
-                book.setImage(resultSet.getString("image"));
-                book.setAvailability(resultSet.getBoolean("availability"));
-                books.add(book);
-            }
-
-        } catch (SQLException e) {
-            logger.error("Erreur lors de la récupération des livres.", e); // Log de l'erreur
-            throw new RuntimeException("Erreur lors de la récupération des livres.", e);
-        }
-
-        return books;
+        return bookRepository.findAll();
     }
 
-    public Optional<Book> getBookById(Long id) {
-        String query = "SELECT * FROM book WHERE id = ?";
-        Book book = null;
-
-        try (Connection connection = DatabaseConnection.getInstance().getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
-
-            statement.setLong(1, id);
-            ResultSet resultSet = statement.executeQuery();
-
-            if (resultSet.next()) {
-                book = new Book();
-                book.setId(resultSet.getLong("id"));
-                book.setTitle(resultSet.getString("title"));
-                book.setAuthor(resultSet.getString("author"));
-                book.setGenre(resultSet.getString("genre"));
-                book.setImage(resultSet.getString("image"));
-                book.setAvailability(resultSet.getBoolean("availability"));
-            }
-
-        } catch (SQLException e) {
-            logger.error("Erreur lors de la récupération du livre avec l'ID " + id, e); // Log de l'erreur
-            throw new RuntimeException("Erreur lors de la récupération du livre avec l'ID " + id, e);
-        }
-
-        return Optional.ofNullable(book);
+    public Book getBookById(Long id) {
+        return bookRepository.findById(id).orElseThrow(() ->new BookNotFoundException("Book not found with ID: " + id));
     }
 
-    public Book createBook(Book book) {
-        String query = "INSERT INTO book (title, author, genre, image, availability, id_library) VALUES (?, ?, ?, ?, ?, ?)";
-
-        try (Connection connection = DatabaseConnection.getInstance().getConnection();
-             PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
-
-            statement.setString(1, book.getTitle());
-            statement.setString(2, book.getAuthor());
-            statement.setString(3, book.getGenre());
-            statement.setString(4, book.getImage());
-            statement.setBoolean(5, book.isAvailability());
-            statement.setLong(6, book.getLibrary().getId());
-
-            int rowsInserted = statement.executeUpdate();
-            if (rowsInserted > 0) {
-                ResultSet generatedKeys = statement.getGeneratedKeys();
-                if (generatedKeys.next()) {
-                    book.setId(generatedKeys.getLong(1));
-                }
-            }
-
-        } catch (SQLException e) {
-            logger.error("Erreur lors de la création du livre.", e); // Log de l'erreur
-            throw new RuntimeException("Erreur lors de la création du livre.", e);
-        }
-
-        return book;
+    public List<Book> searchBooks(String query) {
+        return bookRepository.searchBooks(query);
     }
 
-    public Book updateBook(Long id, Book bookDetails) {
-        String query = "UPDATE book SET title = ?, author = ?, genre = ?, image = ?, availability = ?, id_library = ? WHERE id = ?";
 
-        try (Connection connection = DatabaseConnection.getInstance().getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
+    public String updateBook(Book bookDetails) {
 
-            statement.setString(1, bookDetails.getTitle());
-            statement.setString(2, bookDetails.getAuthor());
-            statement.setString(3, bookDetails.getGenre());
-            statement.setString(4, bookDetails.getImage());
-            statement.setBoolean(5, bookDetails.isAvailability());
-            statement.setLong(6, bookDetails.getLibrary().getId());
-            statement.setLong(7, id);
 
-            int rowsUpdated = statement.executeUpdate();
-            if (rowsUpdated == 0) {
-                throw new RuntimeException("Aucun livre trouvé avec l'ID " + id);
+        Optional<Book> book_id = this.bookRepository.findById(bookDetails.getId());
+        if (book_id.isPresent()) {
+            Book book = book_id.get();
+
+            if (bookDetails.getAuthor() != null){
+                book.setAuthor(bookDetails.getAuthor());
             }
-
-        } catch (SQLException e) {
-            logger.error("Erreur lors de la mise à jour du livre avec l'ID " + id, e); // Log de l'erreur
-            throw new RuntimeException("Erreur lors de la mise à jour du livre avec l'ID " + id, e);
+            if (bookDetails.getGenre() != null){
+                book.setGenre(bookDetails.getGenre());
+            }
+            if (bookDetails.getTitle() != null){
+                book.setTitle(bookDetails.getTitle());
+            }
+            if (bookDetails.getLibrary() != null){
+                book.setLibrary(bookDetails.getLibrary());
+            }
+            this.bookRepository.save(book);
+            return "Modification successfully completed";
         }
 
-        return bookDetails;
+        return( "Book not found.");
     }
 
-    public void deleteBook(Long id) {
-        String query = "DELETE FROM book WHERE id = ?";
+    public Book addBook(Book book) {
 
-        try (Connection connection = DatabaseConnection.getInstance().getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
-
-            statement.setLong(1, id);
-            int rowsDeleted = statement.executeUpdate();
-
-            if (rowsDeleted == 0) {
-                throw new RuntimeException("Aucun livre trouvé avec l'ID " + id);
-            }
-
-        } catch (SQLException e) {
-            logger.error("Erreur lors de la suppression du livre avec l'ID " + id, e); // Log de l'erreur
-            throw new RuntimeException("Erreur lors de la suppression du livre avec l'ID " + id, e);
-        }
+        return bookRepository.save(book);
     }
+
+    public void deleteBook(Long bookId) {
+
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+        bookRepository.delete(book);
+    }
+
+
 }

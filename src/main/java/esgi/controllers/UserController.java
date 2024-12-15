@@ -20,12 +20,12 @@ public class UserController {
     }
 
     @ResponseStatus(value = HttpStatus.CREATED)
-    @PostMapping(path= "/register", consumes = APPLICATION_JSON_VALUE)
-    public String creerUser(@RequestBody User user){
+    @PostMapping(path= "/create", consumes = APPLICATION_JSON_VALUE)
+    public String createUser(@RequestBody User user){
 
         System.out.println("Creating user: " + user);
 
-        return this.userService.creerUser(user);
+        return this.userService.createUser(user);
     }
 
     @PostMapping(path = "/connect", consumes = APPLICATION_JSON_VALUE)
