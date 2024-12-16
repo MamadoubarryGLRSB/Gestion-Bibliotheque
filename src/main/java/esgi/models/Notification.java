@@ -1,5 +1,6 @@
 package esgi.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,5 +20,6 @@ public class Notification {
 
     @ManyToOne
     @JoinColumn(name = "id_user", nullable = false)
+    @JsonBackReference  // Evite la sérialisation récursive de l'utilisateur dans Notification
     private User user;
 }

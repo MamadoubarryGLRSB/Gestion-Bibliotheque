@@ -56,6 +56,6 @@ public class NotificationService {
         long difference = now.getTime() - loanDate.getTime();
         System.out.println("Affiche moi la difference +++++++++++++++++++++++"+ difference);
         long days = difference / (1000 * 60 * 60 * 24);
-        return days >= 2; // Loan is due soon if it’s been 13 days
+        return days >= 0; // Loan is due soon if it’s been 13 days
     }
 }
