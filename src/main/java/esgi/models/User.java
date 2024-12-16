@@ -31,4 +31,8 @@ public class User {
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Loan> loans;
+
+    public User(Integer id) {
+        this.id = id;
+    }
 }

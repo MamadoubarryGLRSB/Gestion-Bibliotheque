@@ -38,6 +38,9 @@ public class BookController {
         List<Book> books = bookService.getBooksPaginated(page, limit);
         long totalBooks = bookService.countBooks();
 
+        System.out.println("Books fetched: " + books.size());
+        System.out.println("Books: " + books);
+
         Map<String, Object> response = Map.of(
                 "books", books,
                 "currentPage", page,

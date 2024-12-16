@@ -27,7 +27,7 @@ public class Book {
     @Column(name = "image", nullable = true)
     private String image;
 
-    private String yearOfPublication;
+    private String year_of_publication;
 
     private String publisher;
 
@@ -49,4 +49,6 @@ public class Book {
     @ManyToOne // Relation avec la bibliothèque
     @JoinColumn(name = "id_library", nullable = true)
     private Library library;
+
+
 }

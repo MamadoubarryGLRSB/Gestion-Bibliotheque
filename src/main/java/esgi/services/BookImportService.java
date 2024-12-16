@@ -69,7 +69,7 @@ public class BookImportService {
                     book.setIsbn(isbn);
                     book.setTitle(title);
                     book.setAuthor(author);
-                    book.setYearOfPublication(year_of_publication);
+                    book.setYear_of_publication(year_of_publication);
                     book.setPublisher(publisher);
                     book.setAvailability(true);
                     book.setImageUrlS(imageUrlS);

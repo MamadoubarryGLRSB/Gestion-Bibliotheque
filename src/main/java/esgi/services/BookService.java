@@ -146,7 +146,7 @@ public class BookService {
         statement.setString(1, book.getIsbn());
         statement.setString(2, book.getTitle());
         statement.setString(3, book.getAuthor());
-        statement.setString(4, book.getYearOfPublication());
+        statement.setString(4, book.getYear_of_publication());
         statement.setString(5, book.getPublisher());
         statement.setString(6, book.getGenre());
         statement.setString(7, book.getImageUrlS());
@@ -235,7 +235,7 @@ public class BookService {
         book.setIsbn(resultSet.getString("isbn"));
         book.setTitle(resultSet.getString("title"));
         book.setAuthor(resultSet.getString("author"));
-        book.setYearOfPublication(resultSet.getString("year_of_publication"));
+        book.setYear_of_publication(resultSet.getString("year_of_publication"));
         book.setPublisher(resultSet.getString("publisher"));
         book.setGenre(resultSet.getString("genre"));
         book.setImageUrlS(resultSet.getString("image_url_s"));

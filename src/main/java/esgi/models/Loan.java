@@ -1,5 +1,6 @@
 package esgi.models;
 
+import esgi.enums.LoanStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import esgi.models.User;
@@ -15,12 +16,6 @@ public class Loan {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String borrower;
-
-    @Column(nullable = false)
-    private String date;
-
     @ManyToOne
     @JoinColumn(name = "id_book", nullable = false)
     private Book book;
@@ -28,4 +23,14 @@ public class Loan {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Column(nullable = false)
+    private String borrowDate;
+
+    @Column(nullable = true)
+    private String returnDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private LoanStatus status;
 }
