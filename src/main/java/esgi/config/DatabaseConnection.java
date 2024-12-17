@@ -11,9 +11,9 @@ public class DatabaseConnection {
     private Connection connection;
 
     // Paramètres de la base de données
-    private static final String URL = "jdbc:mysql://localhost:8889/bd-bibliotheque?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+    private static final String URL = "jdbc:mysql://localhost:3306/db-biblio?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
     private static final String USER = "root";
-    private static final String PASSWORD = "root";
+    private static final String PASSWORD = "";
 
     // Constructeur privé pour empêcher l'instanciation directe
     private DatabaseConnection() throws SQLException {

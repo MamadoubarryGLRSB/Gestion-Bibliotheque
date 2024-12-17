@@ -7,7 +7,9 @@ import esgi.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -21,32 +23,53 @@ public class UserService {
         this.userFactory = userFactory;
     }
 
-    public String createUser(User user){
+    public String createUser(User user) {
 
+        // Vérification si l'email existe déjà
         User existingUser = this.userRepository.findByEmail(user.getEmail());
         if (existingUser != null) {
-            // L'email existe déjà, donc on peut lancer une exception
-          return ("Email is already in use.");
+            return "Email is already in use.";
         }
-        User users = userFactory.createUser(user.getName(), user.getEmail(), user.getPassword(), user.getRole());
+
+        // Définir un rôle par défaut si aucun n'est fourni
+        Role role = (user.getRole() != null) ? user.getRole() : Role.MEMBER;
+
+        // Créer l'utilisateur avec le rôle par défaut
+        User users = userFactory.createUser(user.getName(), user.getEmail(), user.getPassword(), role);
 
         this.userRepository.save(users);
         return "User created successfully";
     }
 
-    public String connectUser(String email, String password){
-        List<User> listUser= this.userRepository.findAll();
+    // Dans votre service
+    public Map<String, String> connectUser(String email, String password) {
+        List<User> listUser = this.userRepository.findAll();
 
-        // Parcourir la liste et vérifier si un utilisateur avec cet email et mot de passe existe
         for (User user : listUser) {
-            if (user.getEmail().equals(email) && user.getPassword().equals(password)){
-                return "User connect : "+ user.getEmail();
+            if (user.getEmail().equals(email) && user.getPassword().equals(password)) {
+                String token = generateToken(user); // Générez un jeton d'authentification
+
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "User connected successfully");
+                response.put("email", user.getEmail());
+                response.put("token", token); // Renvoyez le token dans la réponse
+                response.put("status", "200");
+                return response;
             }
         }
 
-        return "Incorrect email address or password.";
-
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("message", "Incorrect email address or password");
+        errorResponse.put("status", "401");
+        return errorResponse;
     }
+
+    private String generateToken(User user) {
+        // Implémentez la logique de génération de token ici
+        // Utilisez par exemple un framework comme JWT (Java Web Token)
+        return "generated_token_" + user.getId();
+    }
+
 
     public String updateProfile( User user){
 
