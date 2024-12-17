@@ -31,10 +31,10 @@ public class Book {
 
     @ManyToOne
     @JoinColumn(name = "id_library", nullable = false)
-    @JsonBackReference
+    @JsonBackReference(value = "books-library")
     private Library library;
 
     @OneToMany(mappedBy = "book", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JsonBackReference
+    @JsonBackReference(value = "book-loans")
     private List<Loan> loans;
 }

@@ -21,6 +21,6 @@ public class Library {
     private String name;
 
     @OneToMany(mappedBy = "library", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JsonBackReference
+    @JsonBackReference(value = "library-books")
     private List<Book> books;
 }

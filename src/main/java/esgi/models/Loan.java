@@ -28,7 +28,7 @@ public class Loan {
 
     @ManyToOne
     @JoinColumn(name = "id_user", nullable = false)
-    @JsonBackReference
+    @JsonBackReference(value = "loans-user")
     private User user;
 
     @ManyToOne

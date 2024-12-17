@@ -20,6 +20,6 @@ public class Notification {
 
     @ManyToOne
     @JoinColumn(name = "id_user", nullable = false)
-    @JsonBackReference  // Evite la sérialisation récursive de l'utilisateur dans Notification
+    @JsonBackReference(value = "notifications-user")  // Evite la sérialisation récursive de l'utilisateur dans Notification
     private User user;
 }

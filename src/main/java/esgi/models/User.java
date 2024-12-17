@@ -32,10 +32,10 @@ public class User {
     private Role role;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JsonBackReference   // Gestion de la sérialisation des prêts et notifications
+    @JsonBackReference(value = "user-loans")   // Gestion de la sérialisation des prêts et notifications
     private List<Loan> loans;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JsonBackReference  // Idem pour les notifications
+    @JsonBackReference(value = "user-notifications")  // Idem pour les notifications
     private List<Notification> notifications;
 }
