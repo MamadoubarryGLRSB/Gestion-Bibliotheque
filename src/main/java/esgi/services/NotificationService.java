@@ -10,6 +10,9 @@ import esgi.repositories.NotificationRepository;
 import esgi.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.time.ZoneId;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import java.util.Date;
 import java.util.List;
@@ -32,15 +35,19 @@ public class NotificationService {
 
     public void sendDueDateReminders() {
         List<Loan> activeLoans = loanRepository.findActiveLoans();
-        Date now = new Date();
+        LocalDateTime now = LocalDateTime.now();
 
         for (Loan loan : activeLoans) {
-            if (loan.getReturnDate() == null && isDueSoon(loan.getLoanDate(), now)) {
+            if (loan.getReturnDate() == null && isDueSoon(loan.getLoanDate(), convertToDate(now))) {
                 UserObserver userObserver = new UserObserver(loan.getUser(), notificationRepository);
                 userObserver.update("Reminder: Your loan for the book '" + loan.getBook().getTitle() +
                         "' is due soon.");
             }
         }
+    }
+
+    private Date convertToDate(LocalDateTime localDateTime) {
+        return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
     }
 
     public void notifyLibrariansAboutNewLoan(Loan loan) {

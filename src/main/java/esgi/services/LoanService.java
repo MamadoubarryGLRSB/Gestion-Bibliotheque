@@ -4,12 +4,14 @@ import esgi.repositories.BookRepository;
 import esgi.repositories.LoanRepository;
 import esgi.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-
+import esgi.dtos.LoanDTO;
 import esgi.models.Book;
 import esgi.models.Loan;
 import esgi.models.User;
 import org.springframework.stereotype.Service;
-
+import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -53,11 +55,15 @@ public class LoanService {
         if (!book.isAvailability()) {
             throw new RuntimeException("Book is not available for loan");
         }
-
+        if (loanRepository.existsByBookIdAndReturnDateIsNull(bookId)) {
+            throw new RuntimeException("Book is already borrowed");
+        }
         Loan loan = new Loan();
         loan.setUser(user);
         loan.setBook(book);
-        loan.setLoanDate(new Date());
+        loan.setLoanDate(LocalDateTime.now());
+        loan.setStatus(Loan.LoanStatus.PENDING);
+        loan.setPickupDate(LocalDateTime.now().plusDays(1));
 
         book.setAvailability(false);
         bookRepository.save(book);
@@ -82,7 +88,7 @@ public class LoanService {
         }
 
         // Mettre à jour la date de retour
-        loan.setReturnDate(new Date());
+        loan.setReturnDate(LocalDateTime.now());
 
         // Marquer le livre comme disponible
         Book book = loan.getBook();
@@ -113,4 +119,19 @@ public class LoanService {
         // Approve the loan (add your business logic here)
         return loanRepository.save(loan);
     }
+
+    public List<LoanDTO> getPendingLoans() {
+        // Exemple : Filtre les prêts avec un statut "En attente"
+        return loanRepository.findAll().stream()
+                .filter(loan -> loan.getStatus() == (Loan.LoanStatus.PENDING))
+                .map(loan -> new LoanDTO(
+                        loan.getId(),
+                        loan.getBook().getTitle(),
+                        loan.getUser().getName(),
+                        loan.getLoanDate(),
+                        loan.getStatus().name()
+                ))
+                .collect(Collectors.toList());
+    }
+
 }

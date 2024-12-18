@@ -131,6 +131,10 @@ public class UserService {
         return userRepository.findByRole(Role.LIBRARIAN);
     }
 
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
     // Supprimer un bibliothécaire (par ADMIN)
     public void deleteLibrarian(Integer librarianId) {
         User librarian = userRepository.findById(librarianId)

@@ -36,6 +36,13 @@ public class LoanController {
         Long bookId = ((Number) payload.get("bookId")).longValue();
         return loanService.borrowBook(userId, bookId);
     }
+    @PutMapping("/validate/{loanId}")
+    public Loan validateLoanRequest(
+            @PathVariable Long loanId,
+            @RequestParam boolean isApproved
+    ) {
+        return loanService.validateLoanRequest(loanId, isApproved);
+    }
 
     @PutMapping("/return/{loanId}")
     public Loan returnBook(@PathVariable Long loanId) {
