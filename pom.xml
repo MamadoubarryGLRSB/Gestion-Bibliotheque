@@ -2,44 +2,57 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- Parent POM: Définit Spring Boot comme parent, ce qui fournit des configurations prédéfinies -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.1.6</version> <!-- Dernière version stable -->
-        <relativePath/>
+        <relativePath/> <!-- Permet de ne pas chercher le parent ailleurs -->
     </parent>
+
+    <!-- Informations sur le projet -->
     <groupId>ismapprovisionnement</groupId>
     <artifactId>demo</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>demo</name>
     <description>Demo project</description>
+
+    <!-- Propriétés globales pour le projet -->
     <properties>
-        <java.version>21</java.version> <!-- Version Java à jour -->
+        <java.version>21</java.version> <!-- Version Java utilisée pour le projet -->
     </properties>
+
     <dependencies>
-        <!-- Spring Boot Dependencies -->
+        <!-- Spring Boot - JPA: Gestion des données et des bases de données relationnelles -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
+
+        <!-- Spring Boot - Thymeleaf: Moteur de templates pour les vues HTML -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
+
+        <!-- Spring Boot - Web: Développement d'API REST et applications web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
+
+ 
 
 
+
+        <!-- OpenCSV: Lecture et écriture de fichiers CSV -->
+
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>5.7.1</version>
         </dependency>
 
         <dependency>
@@ -48,60 +61,114 @@
             <version>2.15.3</version>
         </dependency>
 
+        <!-- Jackson Databind: Sérialisation et désérialisation JSON -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.15.3</version>
+        </dependency>
+
+        <!-- Apache POI: Lecture et écriture de fichiers Excel (XLSX, XLS) -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>5.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml-schemas</artifactId>
+            <version>4.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.xmlbeans</groupId>
+            <artifactId>xmlbeans</artifactId>
+            <version>5.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.virtuald</groupId>
+            <artifactId>curvesapi</artifactId>
+            <version>1.07</version>
+        </dependency>
 
 
-        <!-- Bootstrap -->
+
+        <!-- Spring Boot - Validation: Validation des entrées utilisateur -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- Bootstrap: Framework CSS pour le design responsif -->
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>bootstrap</artifactId>
             <version>5.2.3</version>
         </dependency>
 
-        <!-- Thymeleaf Layout Dialect -->
+        <!-- Thymeleaf Layout Dialect: Gestion avancée des layouts dans Thymeleaf -->
         <dependency>
             <groupId>nz.net.ultraq.thymeleaf</groupId>
             <artifactId>thymeleaf-layout-dialect</artifactId>
         </dependency>
 
-
-
+        <!-- MySQL Connector: Connexion à une base de données MySQL -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.33</version> <!-- Utilisez la version compatible avec MySQL 8 -->
+            <version>8.0.33</version> <!-- Compatible avec MySQL 8 -->
         </dependency>
 
-
-
-
-        <!-- Lombok -->
+        <!-- Lombok: Réduction du code boilerplate grâce aux annotations -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <optional>true</optional>
+            <version>1.18.30</version>
+            <scope>provided</scope>
         </dependency>
 
-        <!-- DevTools -->
+        <!-- Spring Boot DevTools: Outils de développement pour accélérer la productivité -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
+            <scope>runtime</scope> <!-- Charge uniquement lors de l'exécution -->
             <optional>true</optional>
         </dependency>
 
-        <!-- Test Dependencies -->
+        <!-- Spring Boot - Test: Outils pour tester les applications Spring -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
-
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+    </repositories>
     <build>
         <plugins>
+            <!-- Spring Boot Maven Plugin: Gère le cycle de vie des applications Spring Boot -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <!-- Maven Compiler Plugin: Définit la version source et cible de Java -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>
