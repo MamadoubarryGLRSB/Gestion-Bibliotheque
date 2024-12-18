@@ -82,6 +82,9 @@ public class UserService {
     public  List<User> getAllUsers() {
         return this.userRepository.findAll();
     }
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
 
     public String deleteUser(Integer id){
         Optional<User> userDelete = this.userRepository.findById(id);

@@ -1,11 +1,11 @@
 package esgi.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -20,11 +20,20 @@ public class Loan {
 
     @Column(name = "loan_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
-    private Date loanDate;
+    private LocalDateTime loanDate;
 
     @Column(name = "return_date")
     @Temporal(TemporalType.TIMESTAMP)
-    private Date returnDate;
+    private LocalDateTime returnDate;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private LoanStatus status;
+
+    @Column(name = "pickup_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime pickupDate;
+
 
     @ManyToOne
     @JoinColumn(name = "id_user", nullable = false)
@@ -33,5 +42,10 @@ public class Loan {
 
     @ManyToOne
     @JoinColumn(name = "id_book", nullable = false)
+    @JsonIgnoreProperties(value = "loans-book")
     private Book book;
+
+    public enum LoanStatus {
+        PENDING, APPROVED, REJECTED
+    }
 }

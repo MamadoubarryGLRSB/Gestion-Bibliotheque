@@ -8,6 +8,6 @@ public class BibliothequeApplication {
     public static void main(String[] args) {
 
         SpringApplication.run(BibliothequeApplication.class, args);
-        System.out.println("hello word carlos\n");
+        System.out.println("hello word");
     }
 }

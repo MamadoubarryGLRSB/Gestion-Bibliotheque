@@ -1,4 +1,5 @@
 package esgi.services;
+import esgi.dtos.LoanDTO;
 import esgi.models.Role;
 import esgi.repositories.BookRepository;
 import esgi.repositories.LoanRepository;
@@ -10,8 +11,11 @@ import esgi.models.Loan;
 import esgi.models.User;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class LoanService {
@@ -54,20 +58,61 @@ public class LoanService {
             throw new RuntimeException("Book is not available for loan");
         }
 
+        if (loanRepository.existsByBookIdAndReturnDateIsNull(bookId)) {
+            throw new RuntimeException("Book is already borrowed");
+        }
+
+
+
         Loan loan = new Loan();
         loan.setUser(user);
         loan.setBook(book);
-        loan.setLoanDate(new Date());
-
-        book.setAvailability(false);
-        bookRepository.save(book);
+        loan.setLoanDate(LocalDateTime.now());
+        loan.setStatus(Loan.LoanStatus.PENDING);
+        loan.setPickupDate(LocalDateTime.now().plusDays(1));
 
         Loan savedLoan = loanRepository.save(loan);
-        // Notifier les bibliothécaires
         notificationService.notifyLibrariansAboutNewLoan(savedLoan);
 
         return savedLoan;
     }
+
+    private Date calculatePickupDate(Date now) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(now);
+
+        if (calendar.get(Calendar.HOUR_OF_DAY) < 11) {
+            calendar.set(Calendar.HOUR_OF_DAY, 15);
+        } else {
+            calendar.add(Calendar.DAY_OF_MONTH, 1);
+            calendar.set(Calendar.HOUR_OF_DAY, 15);
+        }
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        return calendar.getTime();
+    }
+
+    public Loan validateLoanRequest(Long loanId, boolean isApproved) {
+        Loan loan = loanRepository.findById(loanId)
+                .orElseThrow(() -> new RuntimeException("Loan request not found"));
+
+        if (isApproved) {
+            loan.setStatus(Loan.LoanStatus.APPROVED);
+            Book book = loan.getBook();
+            if (book.isAvailability()) { // Vérifier que le livre est encore disponible
+                book.setAvailability(false);
+                bookRepository.save(book); // Sauvegarde ici
+            }
+        } else {
+            loan.setStatus(Loan.LoanStatus.REJECTED);
+        }
+
+        loanRepository.save(loan);
+        notificationService.notifyUserAboutLoanStatus(loan);
+
+        return loan;
+    }
+
 
     public void checkForDueDateReminders() {
         notificationService.sendDueDateReminders();
@@ -82,7 +127,7 @@ public class LoanService {
         }
 
         // Mettre à jour la date de retour
-        loan.setReturnDate(new Date());
+        loan.setReturnDate(LocalDateTime.now());
 
         // Marquer le livre comme disponible
         Book book = loan.getBook();
@@ -113,4 +158,19 @@ public class LoanService {
         // Approve the loan (add your business logic here)
         return loanRepository.save(loan);
     }
+
+    public List<LoanDTO> getPendingLoans() {
+        // Exemple : Filtre les prêts avec un statut "En attente"
+        return loanRepository.findAll().stream()
+                .filter(loan -> loan.getStatus() == (Loan.LoanStatus.PENDING))
+                .map(loan -> new LoanDTO(
+                        loan.getId(),
+                        loan.getBook().getTitle(),
+                        loan.getUser().getName(),
+                        loan.getLoanDate(),
+                        loan.getStatus().name()
+                ))
+                .collect(Collectors.toList());
+    }
+
 }

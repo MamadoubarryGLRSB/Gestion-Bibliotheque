@@ -1,5 +1,6 @@
 package esgi.controllers;
 
+import esgi.dtos.LoanDTO;
 import esgi.models.Loan;
 import esgi.services.LoanService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +33,18 @@ public class LoanController {
     @PostMapping("/borrow")
     public Loan borrowBook(@RequestBody Map<String, Object> payload) {
         Integer userId = (Integer) payload.get("userId");
-
         Long bookId = ((Number) payload.get("bookId")).longValue();
         return loanService.borrowBook(userId, bookId);
     }
+
+    @PutMapping("/validate/{loanId}")
+    public Loan validateLoanRequest(
+            @PathVariable Long loanId,
+            @RequestParam boolean isApproved
+    ) {
+        return loanService.validateLoanRequest(loanId, isApproved);
+    }
+
 
     @PutMapping("/return/{loanId}")
     public Loan returnBook(@PathVariable Long loanId) {
@@ -46,4 +55,10 @@ public class LoanController {
     public void deleteLoan(@PathVariable Long loanId) {
         loanService.deleteLoan(loanId);
     }
+
+    @GetMapping("/requests")
+    public List<LoanDTO> getPendingLoans() {
+        return loanService.getPendingLoans();
+    }
+
 }

@@ -10,7 +10,9 @@ import esgi.repositories.NotificationRepository;
 import esgi.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import java.time.ZoneId;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 
@@ -32,15 +34,19 @@ public class NotificationService {
 
     public void sendDueDateReminders() {
         List<Loan> activeLoans = loanRepository.findActiveLoans();
-        Date now = new Date();
+        LocalDateTime now = LocalDateTime.now();
 
         for (Loan loan : activeLoans) {
-            if (loan.getReturnDate() == null && isDueSoon(loan.getLoanDate(), now)) {
+            if (loan.getReturnDate() == null && isDueSoon(loan.getLoanDate(), convertToDate(now))) {
                 UserObserver userObserver = new UserObserver(loan.getUser(), notificationRepository);
                 userObserver.update("Reminder: Your loan for the book '" + loan.getBook().getTitle() +
                         "' is due soon.");
             }
         }
+    }
+
+    private Date convertToDate(LocalDateTime localDateTime) {
+        return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
     }
 
     public void notifyLibrariansAboutNewLoan(Loan loan) {
@@ -52,10 +58,26 @@ public class NotificationService {
         }
     }
 
-    private boolean isDueSoon(Date loanDate, Date now) {
-        long difference = now.getTime() - loanDate.getTime();
-        System.out.println("Affiche moi la difference +++++++++++++++++++++++"+ difference);
-        long days = difference / (1000 * 60 * 60 * 24);
-        return days >= 0; // Loan is due soon if it’s been 13 days
+
+
+    private boolean isDueSoon(LocalDateTime loanDate, Date now) {
+        // Conversion de Date en LocalDateTime pour assurer la cohérence
+        LocalDateTime nowLocalDateTime = now.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
+
+        // Calcul de la différence en jours
+        long days = ChronoUnit.DAYS.between(loanDate, nowLocalDateTime);
+        System.out.println("Affiche moi la différence : " + days + " jours");
+
+        return days >= 13;
+    }
+
+    public void notifyUserAboutLoanStatus(Loan loan) {
+        String message = loan.getStatus() == Loan.LoanStatus.APPROVED
+                ? "Votre demande d'emprunt pour le livre '" + loan.getBook().getTitle() +
+                "' a été approuvée. Vous pouvez récupérer le livre à partir du " + loan.getPickupDate()
+                : "Votre demande d'emprunt pour le livre '" + loan.getBook().getTitle() + "' a été rejetée.";
+
+        UserObserver userObserver = new UserObserver(loan.getUser(), notificationRepository);
+        userObserver.update(message);
     }
 }
